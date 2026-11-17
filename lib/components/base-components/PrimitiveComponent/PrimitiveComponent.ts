@@ -189,7 +189,7 @@ export abstract class PrimitiveComponent<
   cad_component_id: string | null = null
   _reportedInvalidPcbCalcWarnings = new Set<string>()
 
-  private _reportInvalidComponentPropertyError(
+  protected _reportInvalidComponentPropertyError(
     propertyName: string,
     message: string,
   ): void {
@@ -810,7 +810,25 @@ export abstract class PrimitiveComponent<
    */
   computeSchematicPropsTransform(): Matrix {
     const { _parsedProps: props } = this
-    return compose(translate(props.schX ?? 0, props.schY ?? 0))
+    let schX = props?.schX ?? 0
+    let schY = props?.schY ?? 0
+
+    if (typeof schX === "number" && Number.isNaN(schX)) {
+      this._reportInvalidComponentPropertyError(
+        "schX",
+        `Invalid schX value for ${this.componentName}: expression resulted in NaN or is unsupported. expression="${this.props?.schX}"`,
+      )
+      schX = 0
+    }
+    if (typeof schY === "number" && Number.isNaN(schY)) {
+      this._reportInvalidComponentPropertyError(
+        "schY",
+        `Invalid schY value for ${this.componentName}: expression resulted in NaN or is unsupported. expression="${this.props?.schY}"`,
+      )
+      schY = 0
+    }
+
+    return compose(translate(schX, schY))
   }
 
   /**
